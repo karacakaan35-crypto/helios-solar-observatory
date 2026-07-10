@@ -18,9 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const baseUrl = new URL(`${protocol}://${host}`);
-  const title = "Helios — Interactive Solar Observatory";
+  const title = "Helios — Etkileşimli Güneş Gözlemevi";
   const description =
-    "Explore the Solar System in a live Three.js simulation with Keplerian orbits, selectable worlds, and adjustable time.";
+    "Güneş Sistemi’ni Kepler yörüngeleri, seçilebilir gezegenler ve ayarlanabilir zamanla çalışan canlı bir Three.js simülasyonunda keşfedin.";
 
   return {
     metadataBase: baseUrl,
@@ -28,15 +28,15 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     openGraph: {
       title,
-      description: "A live, cinematic model of our Solar System.",
+      description: "Güneş Sistemimizin canlı ve sinematik bir modeli.",
       type: "website",
-      images: [{ url: new URL("/og.png", baseUrl), width: 1680, height: 944, alt: "Helios interactive Solar System observatory" }],
+      images: [{ url: new URL("/og-v2.png", baseUrl), width: 1680, height: 944, alt: "Helios etkileşimli Güneş Sistemi gözlemevi — 19 Mayıs 2081" }],
     },
     twitter: {
       card: "summary_large_image",
       title,
-      description: "A live, cinematic model of our Solar System.",
-      images: [new URL("/og.png", baseUrl)],
+      description: "Güneş Sistemimizin canlı ve sinematik bir modeli.",
+      images: [new URL("/og-v2.png", baseUrl)],
     },
   };
 }
@@ -47,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="tr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>

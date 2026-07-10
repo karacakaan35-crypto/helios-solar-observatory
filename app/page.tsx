@@ -59,7 +59,7 @@ type PlanetData = {
 const PLANETS: PlanetData[] = [
   {
     id: "mercury",
-    name: "Mercury",
+    name: "Merkür",
     color: "#887d73",
     accent: "#d7c7b9",
     radius: 0.25,
@@ -74,12 +74,12 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "0.39 AU",
     temperature: "167 °C",
     moons: "0",
-    year: "88 days",
-    note: "The swiftest world, completing an orbit every 88 Earth days.",
+    year: "88 gün",
+    note: "Güneş çevresindeki turunu yalnızca 88 Dünya gününde tamamlayan en hızlı gezegen.",
   },
   {
     id: "venus",
-    name: "Venus",
+    name: "Venüs",
     color: "#b98245",
     accent: "#f4d08a",
     radius: 0.42,
@@ -94,12 +94,12 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "0.72 AU",
     temperature: "464 °C",
     moons: "0",
-    year: "225 days",
-    note: "A bright, cloud-wrapped world with a slow retrograde spin.",
+    year: "225 gün",
+    note: "Yoğun bulutlarla sarılı, yavaş ve ters yönde dönen parlak bir dünya.",
   },
   {
     id: "earth",
-    name: "Earth",
+    name: "Dünya",
     color: "#2e6fa7",
     accent: "#68c7b6",
     radius: 0.46,
@@ -114,8 +114,8 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "1.00 AU",
     temperature: "15 °C",
     moons: "1",
-    year: "365.26 days",
-    note: "Our ocean world, shown with its true orbital period and axial tilt.",
+    year: "365,26 gün",
+    note: "Gerçek yörünge süresi ve eksen eğikliğiyle gösterilen mavi gezegenimiz.",
   },
   {
     id: "mars",
@@ -134,12 +134,12 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "1.52 AU",
     temperature: "−65 °C",
     moons: "2",
-    year: "687 days",
-    note: "A cold desert world tracing one of the more elliptical inner orbits.",
+    year: "687 gün",
+    note: "İç gezegenlerin daha eliptik yörüngelerinden birini izleyen soğuk bir çöl dünyası.",
   },
   {
     id: "jupiter",
-    name: "Jupiter",
+    name: "Jüpiter",
     color: "#b89172",
     accent: "#efd2a8",
     radius: 1.3,
@@ -154,8 +154,8 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "5.20 AU",
     temperature: "−110 °C",
     moons: "95",
-    year: "11.86 years",
-    note: "The system’s largest planet, rotating once in under ten hours.",
+    year: "11,86 yıl",
+    note: "On saatten kısa sürede kendi çevresinde dönen, sistemin en büyük gezegeni.",
   },
   {
     id: "saturn",
@@ -174,8 +174,8 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "9.58 AU",
     temperature: "−140 °C",
     moons: "146",
-    year: "29.45 years",
-    note: "A pale gas giant encircled by billions of fragments of ice and rock.",
+    year: "29,45 yıl",
+    note: "Milyarlarca buz ve kaya parçasından oluşan halkalarla çevrili soluk bir gaz devi.",
   },
   {
     id: "uranus",
@@ -194,12 +194,12 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "19.2 AU",
     temperature: "−195 °C",
     moons: "28",
-    year: "84 years",
-    note: "An ice giant rotating on its side, likely after an ancient collision.",
+    year: "84 yıl",
+    note: "Muhtemelen kadim bir çarpışmanın ardından yan yatmış halde dönen bir buz devi.",
   },
   {
     id: "neptune",
-    name: "Neptune",
+    name: "Neptün",
     color: "#3159bd",
     accent: "#6f97ff",
     radius: 0.71,
@@ -214,8 +214,8 @@ const PLANETS: PlanetData[] = [
     distanceLabel: "30.05 AU",
     temperature: "−200 °C",
     moons: "16",
-    year: "164.8 years",
-    note: "A distant blue world where winds can exceed 2,000 km/h.",
+    year: "164,8 yıl",
+    note: "Rüzgârların saatte 2.000 kilometreyi aşabildiği uzak, mavi bir dünya.",
   },
 ];
 
@@ -230,21 +230,21 @@ const BODY_INFO: Record<BodyId, {
   note: string;
 }> = {
   sun: {
-    name: "The Sun",
-    eyebrow: "G2V main-sequence star",
+    name: "Güneş",
+    eyebrow: "G2V ana kol yıldızı",
     diameter: "1.39M km",
-    distanceLabel: "System origin",
-    temperature: "5,500 °C",
-    moons: "8 planets",
-    year: "25.4 day spin",
-    note: "Holding 99.86% of the Solar System’s mass, our star drives every orbit here.",
+    distanceLabel: "Sistem merkezi",
+    temperature: "5.500 °C",
+    moons: "8 gezegen",
+    year: "25,4 günlük dönüş",
+    note: "Güneş Sistemi kütlesinin %99,86’sını taşıyan yıldızımız, buradaki her yörüngeyi yönetir.",
   },
   ...Object.fromEntries(
     PLANETS.map((planet) => [
       planet.id,
       {
         name: planet.name,
-        eyebrow: `${planet.distanceLabel} from the Sun`,
+        eyebrow: `Güneş’ten ${planet.distanceLabel} uzaklıkta`,
         diameter: planet.diameter,
         distanceLabel: planet.distanceLabel,
         temperature: planet.temperature,
@@ -266,6 +266,8 @@ const BODY_INFO: Record<BodyId, {
 };
 
 const EPOCH = Date.UTC(2026, 6, 10, 12, 0, 0);
+const COMMEMORATION_DATE = Date.UTC(2081, 4, 19, 0, 0, 0);
+const COMMEMORATION_DAY = (COMMEMORATION_DATE - EPOCH) / 86_400_000;
 const TAU = Math.PI * 2;
 const ORBIT_AXIS = new THREE.Vector3(1, 0, 0);
 
@@ -409,13 +411,13 @@ function createLabelTexture(name: string, accent: string) {
 function formatSpeed(speed: number) {
   if (speed < 1) return `${speed.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}×`;
   if (speed < 10) return `${speed.toFixed(1).replace(".0", "")}×`;
-  return `${Math.round(speed).toLocaleString("en-US")}×`;
+  return `${Math.round(speed).toLocaleString("tr-TR")}×`;
 }
 
 function formatDate(elapsedDays: number) {
   const date = new Date(EPOCH + elapsedDays * 86_400_000);
   const year = date.getUTCFullYear();
-  const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const month = date.toLocaleString("tr-TR", { month: "short", timeZone: "UTC" });
   const day = String(date.getUTCDate()).padStart(2, "0");
   const hour = String(date.getUTCHours()).padStart(2, "0");
   const minute = String(date.getUTCMinutes()).padStart(2, "0");
@@ -432,6 +434,7 @@ export default function Home() {
   const labelVisibilityRef = useRef<(visible: boolean) => void>(() => undefined);
   const gridVisibilityRef = useRef<(visible: boolean) => void>(() => undefined);
   const resetTimeRef = useRef<() => void>(() => undefined);
+  const jumpToCommemorationRef = useRef<() => void>(() => undefined);
 
   const [selected, setSelected] = useState<BodyId>("earth");
   const [playing, setPlaying] = useState(true);
@@ -442,6 +445,7 @@ export default function Home() {
   const [showLabels, setShowLabels] = useState(true);
   const [showGrid, setShowGrid] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [commemorationVisible, setCommemorationVisible] = useState(false);
 
   const speed = useMemo(() => 2 ** speedExponent, [speedExponent]);
   const selectedInfo = BODY_INFO[selected];
@@ -473,6 +477,7 @@ export default function Home() {
     setSimDate(formatDate(0));
     setSpeedExponent(3);
     setPlaying(true);
+    setCommemorationVisible(false);
     applyView("system");
   }, [applyView]);
 
@@ -508,7 +513,7 @@ export default function Home() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     renderer.domElement.className = "space-canvas";
-    renderer.domElement.setAttribute("aria-label", "Interactive 3D model of the Solar System");
+    renderer.domElement.setAttribute("aria-label", "Güneş Sistemi’nin etkileşimli üç boyutlu modeli");
     renderer.domElement.setAttribute("role", "img");
     mount.appendChild(renderer.domElement);
 
@@ -654,7 +659,7 @@ export default function Home() {
 
     const sunLabel = new THREE.Sprite(
       new THREE.SpriteMaterial({
-        map: createLabelTexture("Sol", "#ffb45f"),
+        map: createLabelTexture("Güneş", "#ffb45f"),
         transparent: true,
         depthWrite: false,
         depthTest: false,
@@ -762,7 +767,17 @@ export default function Home() {
     gridVisibilityRef.current = (visible) => { polarGrid.visible = visible; };
 
     let simulatedDays = 0;
-    resetTimeRef.current = () => { simulatedDays = 0; };
+    let commemorationTriggered = false;
+    resetTimeRef.current = () => {
+      simulatedDays = 0;
+      commemorationTriggered = false;
+      setCommemorationVisible(false);
+    };
+    jumpToCommemorationRef.current = () => {
+      simulatedDays = COMMEMORATION_DAY;
+      commemorationTriggered = true;
+      setCommemorationVisible(true);
+    };
     let lastFrame = performance.now();
     let lastUiUpdate = 0;
     let frame = 0;
@@ -806,6 +821,10 @@ export default function Home() {
       const deltaSeconds = Math.min((now - lastFrame) / 1000, 0.08);
       lastFrame = now;
       if (playingRef.current) simulatedDays += deltaSeconds * speedRef.current;
+      if (!commemorationTriggered && simulatedDays >= COMMEMORATION_DAY) {
+        commemorationTriggered = true;
+        setCommemorationVisible(true);
+      }
 
       PLANETS.forEach((planet) => {
         const group = planetGroups.get(planet.id);
@@ -869,21 +888,41 @@ export default function Home() {
       <div className="nebula-wash" aria-hidden="true" />
       <div className="film-grain" aria-hidden="true" />
 
+      <section
+        className={`commemoration ${commemorationVisible ? "is-visible" : ""}`}
+        aria-hidden={!commemorationVisible}
+        aria-live="polite"
+      >
+        <div className="commemoration-aura" aria-hidden="true" />
+        <img
+          className="ataturk-portrait"
+          src="/ataturk-kocatepe.jpg"
+          alt="Kocatepe’de Büyük Taarruz’u yöneten Mustafa Kemal Atatürk"
+        />
+        <div className="commemoration-copy">
+          <span className="commemoration-kicker">162 yıl sonra · yıldızların arasında</span>
+          <p className="commemoration-date"><strong>19 MAYIS</strong><span>2081</span></p>
+          <h2>Bağımsızlık meşalesi<br />gökyüzünü aydınlatıyor.</h2>
+          <p className="commemoration-subtitle">Atatürk’ü Anma, Gençlik ve Spor Bayramı</p>
+          <small>Fotoğraf: Etem Tem · Genelkurmay Arşivi · Kamu malı</small>
+        </div>
+      </section>
+
       <header className="topbar glass-panel">
         <div className="brand-lockup">
           <span className="brand-mark"><Orbit size={21} strokeWidth={1.7} /></span>
           <div>
             <span className="brand-name">HELIOS</span>
-            <span className="brand-subtitle">Solar observatory</span>
+            <span className="brand-subtitle">Güneş gözlemevi</span>
           </div>
         </div>
 
-        <nav className="view-switcher" aria-label="Camera views">
+        <nav className="view-switcher" aria-label="Kamera görünümleri">
           {([
-            ["system", "System"],
-            ["inner", "Inner"],
-            ["outer", "Outer"],
-            ["earth", "Earth"],
+            ["system", "Sistem"],
+            ["inner", "İç"],
+            ["outer", "Dış"],
+            ["earth", "Dünya"],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -898,15 +937,15 @@ export default function Home() {
 
         <div className="telemetry-status">
           <span className="live-dot" />
-          <span>Model live</span>
+          <span>Model canlı</span>
           <span className="telemetry-divider" />
-          <span>9 bodies</span>
+          <span>9 gök cismi</span>
         </div>
       </header>
 
-      <aside className="body-inspector glass-panel" aria-label="Selected celestial body">
+      <aside className="body-inspector glass-panel" aria-label="Seçili gök cismi">
         <div className="panel-kicker">
-          <span>Tracking target</span>
+          <span>İzlenen hedef</span>
           <Crosshair size={14} />
         </div>
         <div className="body-heading">
@@ -918,22 +957,22 @@ export default function Home() {
         </div>
         <p className="body-description">{selectedInfo.note}</p>
         <div className="stat-grid">
-          <div><span>Diameter</span><strong>{selectedInfo.diameter}</strong></div>
-          <div><span>Mean distance</span><strong>{selectedInfo.distanceLabel}</strong></div>
-          <div><span>Mean temp.</span><strong>{selectedInfo.temperature}</strong></div>
-          <div><span>Satellites</span><strong>{selectedInfo.moons}</strong></div>
+          <div><span>Çap</span><strong>{selectedInfo.diameter}</strong></div>
+          <div><span>Ort. uzaklık</span><strong>{selectedInfo.distanceLabel}</strong></div>
+          <div><span>Ort. sıcaklık</span><strong>{selectedInfo.temperature}</strong></div>
+          <div><span>Uydular</span><strong>{selectedInfo.moons}</strong></div>
         </div>
         <div className="year-row">
-          <span>Orbital period</span>
+          <span>Yörünge süresi</span>
           <strong>{selectedInfo.year}</strong>
         </div>
-        <div className="body-strip" aria-label="Choose a body">
+        <div className="body-strip" aria-label="Gök cismi seç">
           {(["sun", ...PLANETS.map((planet) => planet.id)] as BodyId[]).map((body) => (
             <button
               key={body}
               type="button"
               className={body === selected ? "selected" : ""}
-              aria-label={`Focus ${BODY_INFO[body].name}`}
+              aria-label={`${BODY_INFO[body].name} üzerine odaklan`}
               title={BODY_INFO[body].name}
               onClick={() => focusBody(body)}
             >
@@ -943,9 +982,9 @@ export default function Home() {
         </div>
       </aside>
 
-      <aside className="layers-panel glass-panel" aria-label="Visualization controls">
+      <aside className="layers-panel glass-panel" aria-label="Görselleştirme kontrolleri">
         <div className="panel-kicker">
-          <span>Visual field</span>
+          <span>Görsel alan</span>
           <Telescope size={14} />
         </div>
         <button
@@ -957,7 +996,7 @@ export default function Home() {
             orbitVisibilityRef.current(next);
           }}
         >
-          <span><Orbit size={16} /> Orbital paths</span>
+          <span><Orbit size={16} /> Yörünge yolları</span>
           {showOrbits ? <Eye size={16} /> : <EyeOff size={16} />}
         </button>
         <button
@@ -969,7 +1008,7 @@ export default function Home() {
             labelVisibilityRef.current(next);
           }}
         >
-          <span><Tag size={16} /> Body labels</span>
+          <span><Tag size={16} /> Gök cismi etiketleri</span>
           {showLabels ? <Eye size={16} /> : <EyeOff size={16} />}
         </button>
         <button
@@ -981,39 +1020,39 @@ export default function Home() {
             gridVisibilityRef.current(next);
           }}
         >
-          <span><Grid3X3 size={16} /> Reference grid</span>
+          <span><Grid3X3 size={16} /> Referans ızgarası</span>
           {showGrid ? <Eye size={16} /> : <EyeOff size={16} />}
         </button>
         <div className="accuracy-note">
           <BadgeInfo size={15} />
-          <p>Orbital periods, eccentricity and inclination are modeled. Sizes and distances are visually compressed.</p>
+          <p>Yörünge süreleri, dışmerkezlik ve eğimler modellenmiştir. Boyut ve uzaklıklar görsel olarak sıkıştırılmıştır.</p>
         </div>
       </aside>
 
-      <section className="time-console glass-panel" aria-label="Time controls">
+      <section className="time-console glass-panel" aria-label="Zaman kontrolleri">
         <button
           type="button"
           className="play-button"
-          aria-label={playing ? "Pause simulation" : "Play simulation"}
+          aria-label={playing ? "Simülasyonu duraklat" : "Simülasyonu oynat"}
           onClick={() => setPlaying((current) => !current)}
         >
           {playing ? <CirclePause size={22} /> : <Play size={22} fill="currentColor" />}
         </button>
 
         <div className="date-readout">
-          <span>Simulation time</span>
+          <span>Simülasyon zamanı</span>
           <strong>{simDate}</strong>
         </div>
 
         <div className="speed-control">
           <div className="speed-meta">
-            <span><Gauge size={14} /> Time velocity</span>
+            <span><Gauge size={14} /> Zaman hızı</span>
             <strong>{formatSpeed(speed)}</strong>
           </div>
           <div className="slider-row">
-            <button type="button" onClick={() => changeSpeed(-1)} aria-label="Decrease time speed"><Minus size={15} /></button>
+            <button type="button" onClick={() => changeSpeed(-1)} aria-label="Zamanı yavaşlat"><Minus size={15} /></button>
             <input
-              aria-label="Simulation speed"
+              aria-label="Simülasyon hızı"
               type="range"
               min="-2"
               max="12"
@@ -1022,29 +1061,44 @@ export default function Home() {
               onChange={(event) => setSpeedExponent(Number(event.target.value))}
               style={{ "--range-progress": `${((speedExponent + 2) / 14) * 100}%` } as React.CSSProperties}
             />
-            <button type="button" onClick={() => changeSpeed(1)} aria-label="Increase time speed"><Plus size={15} /></button>
+            <button type="button" onClick={() => changeSpeed(1)} aria-label="Zamanı hızlandır"><Plus size={15} /></button>
           </div>
         </div>
 
-        <button type="button" className="reset-button" onClick={resetSimulation} aria-label="Reset simulation">
+        <button type="button" className="reset-button" onClick={resetSimulation} aria-label="Simülasyonu sıfırla">
           <RotateCcw size={17} />
-          <span>Reset</span>
+          <span>Sıfırla</span>
         </button>
       </section>
 
+      <button
+        type="button"
+        className={`event-jump glass-chip ${commemorationVisible ? "is-active" : ""}`}
+        onClick={() => {
+          jumpToCommemorationRef.current();
+          setPlaying(false);
+          setSimDate(formatDate(COMMEMORATION_DAY));
+          applyView("system");
+        }}
+        aria-label="19 Mayıs 2081 anma anına git"
+      >
+        <span className="event-star">✦</span>
+        <span>{commemorationVisible ? "19 MAYIS 2081 · ANMA MODU" : "19 MAYIS 2081’E GİT"}</span>
+      </button>
+
       <div className="interaction-hint glass-chip">
         <MousePointer2 size={14} />
-        <span>Drag to orbit · scroll to zoom · select a world</span>
+        <span>Döndürmek için sürükle · yakınlaşmak için kaydır · bir gezegen seç</span>
       </div>
 
       <div className="model-badge glass-chip">
         <Sparkles size={14} />
-        <span>Keplerian motion</span>
+        <span>Kepler hareketi</span>
       </div>
 
       <div className={`loading-veil ${isReady ? "is-ready" : ""}`} aria-hidden="true">
         <Orbit size={30} />
-        <span>Calibrating ephemeris</span>
+        <span>Gök günlüğü kalibre ediliyor</span>
       </div>
     </main>
   );
