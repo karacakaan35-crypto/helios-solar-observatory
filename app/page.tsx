@@ -725,6 +725,113 @@ export default function Home() {
     dust.rotation.z = 0.42;
     scene.add(dust);
 
+    let disposed = false;
+    let ataturkPoints: THREE.Points | null = null;
+    let ataturkInitial: Float32Array | null = null;
+    let ataturkTargets: Float32Array | null = null;
+    let ataturkSeeds: Float32Array | null = null;
+    let formationAge = 0;
+    const ataturkGroup = new THREE.Group();
+    ataturkGroup.position.set(15.5, 6.8, -4);
+    scene.add(ataturkGroup);
+
+    const sourcePhoto = new Image();
+    sourcePhoto.decoding = "async";
+    sourcePhoto.onload = () => {
+      if (disposed) return;
+      const canvas = document.createElement("canvas");
+      const width = 220;
+      const height = 452;
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return;
+
+      context.drawImage(sourcePhoto, 245, 35, 960, 1970, 0, 0, width, height);
+      const pixels = context.getImageData(0, 0, width, height).data;
+      const candidates: Array<{ x: number; y: number; darkness: number }> = [];
+      const luminanceAt = (x: number, y: number) => {
+        const index = (y * width + x) * 4;
+        return pixels[index] * 0.299 + pixels[index + 1] * 0.587 + pixels[index + 2] * 0.114;
+      };
+
+      for (let y = 3; y < height - 3; y += 2) {
+        for (let x = 3; x < width - 3; x += 2) {
+          const luminance = luminanceAt(x, y);
+          if (luminance > 157) continue;
+          let denseNeighbors = 0;
+          for (let offsetY = -4; offsetY <= 4; offsetY += 2) {
+            for (let offsetX = -4; offsetX <= 4; offsetX += 2) {
+              if (luminanceAt(x + offsetX, y + offsetY) < 178) denseNeighbors += 1;
+            }
+          }
+          if (denseNeighbors >= 11) candidates.push({ x, y, darkness: 1 - luminance / 255 });
+        }
+      }
+
+      const particleRandom = seeded(20811905);
+      for (let index = candidates.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(particleRandom() * (index + 1));
+        [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+      }
+      const selectedPoints = candidates.slice(0, Math.min(7600, candidates.length));
+      const positions = new Float32Array(selectedPoints.length * 3);
+      const targets = new Float32Array(selectedPoints.length * 3);
+      const colors = new Float32Array(selectedPoints.length * 3);
+      const seeds = new Float32Array(selectedPoints.length);
+      const color = new THREE.Color();
+
+      selectedPoints.forEach((point, index) => {
+        const seed = particleRandom();
+        const targetX = (point.x / width - 0.5) * 9.4;
+        const targetY = (0.5 - point.y / height) * 20.2;
+        const targetZ = (particleRandom() - 0.5) * 0.7;
+        const radius = 9 + particleRandom() * 25;
+        const angle = particleRandom() * TAU;
+        const elevation = (particleRandom() - 0.5) * Math.PI;
+
+        targets[index * 3] = targetX;
+        targets[index * 3 + 1] = targetY;
+        targets[index * 3 + 2] = targetZ;
+        positions[index * 3] = targetX + Math.cos(angle) * Math.cos(elevation) * radius;
+        positions[index * 3 + 1] = targetY + Math.sin(elevation) * radius * 0.78;
+        positions[index * 3 + 2] = targetZ + Math.sin(angle) * Math.cos(elevation) * radius * 0.55;
+        seeds[index] = seed;
+
+        color.setHSL(
+          0.51 + particleRandom() * 0.07,
+          0.25 + particleRandom() * 0.42,
+          0.58 + point.darkness * 0.3,
+        );
+        colors[index * 3] = color.r;
+        colors[index * 3 + 1] = color.g;
+        colors[index * 3 + 2] = color.b;
+      });
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      const material = new THREE.PointsMaterial({
+        size: 0.19,
+        transparent: true,
+        opacity: 0,
+        vertexColors: true,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      ataturkPoints = new THREE.Points(geometry, material);
+      ataturkPoints.visible = false;
+      ataturkGroup.add(ataturkPoints);
+      ataturkInitial = positions.slice();
+      ataturkTargets = targets;
+      ataturkSeeds = seeds;
+
+      if (commemorationTriggered) {
+        ataturkPoints.visible = true;
+        formationAge = 0;
+      }
+    };
     const cameraGoal = {
       position: new THREE.Vector3(0, 24, 45),
       target: new THREE.Vector3(0, 0, 0),
@@ -768,16 +875,24 @@ export default function Home() {
 
     let simulatedDays = 0;
     let commemorationTriggered = false;
+    const triggerCommemoration = () => {
+      commemorationTriggered = true;
+      formationAge = 0;
+      if (ataturkPoints) ataturkPoints.visible = true;
+      setCommemorationVisible(true);
+    };
     resetTimeRef.current = () => {
       simulatedDays = 0;
       commemorationTriggered = false;
+      formationAge = 0;
+      if (ataturkPoints) ataturkPoints.visible = false;
       setCommemorationVisible(false);
     };
     jumpToCommemorationRef.current = () => {
       simulatedDays = COMMEMORATION_DAY;
-      commemorationTriggered = true;
-      setCommemorationVisible(true);
+      triggerCommemoration();
     };
+    sourcePhoto.src = "/ataturk-kocatepe.jpg";
     let lastFrame = performance.now();
     let lastUiUpdate = 0;
     let frame = 0;
@@ -813,6 +928,13 @@ export default function Home() {
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      if (width < 820) {
+        ataturkGroup.position.set(7.2, 5.2, -2);
+        ataturkGroup.scale.setScalar(0.72);
+      } else {
+        ataturkGroup.position.set(15.5, 6.8, -4);
+        ataturkGroup.scale.setScalar(1);
+      }
     };
     window.addEventListener("resize", resize);
     resize();
@@ -822,8 +944,7 @@ export default function Home() {
       lastFrame = now;
       if (playingRef.current) simulatedDays += deltaSeconds * speedRef.current;
       if (!commemorationTriggered && simulatedDays >= COMMEMORATION_DAY) {
-        commemorationTriggered = true;
-        setCommemorationVisible(true);
+        triggerCommemoration();
       }
 
       PLANETS.forEach((planet) => {
@@ -837,6 +958,40 @@ export default function Home() {
       glow.material.rotation += deltaSeconds * 0.008;
       stars.rotation.y += deltaSeconds * 0.00035;
       dust.rotation.y -= deltaSeconds * 0.00018;
+
+      if (ataturkPoints && ataturkInitial && ataturkTargets && ataturkSeeds && ataturkPoints.visible) {
+        formationAge += deltaSeconds;
+        const formationProgress = Math.min(formationAge / 14, 1);
+        const positionAttribute = ataturkPoints.geometry.getAttribute("position") as THREE.BufferAttribute;
+        const positions = positionAttribute.array as Float32Array;
+        const particleCount = ataturkSeeds.length;
+
+        for (let index = 0; index < particleCount; index += 1) {
+          const seed = ataturkSeeds[index];
+          const delayedProgress = THREE.MathUtils.clamp((formationProgress - seed * 0.22) / 0.78, 0, 1);
+          const eased = delayedProgress * delayedProgress * (3 - 2 * delayedProgress);
+          const swirl = (1 - eased) * (1.2 + seed * 4.8);
+          const angle = seed * TAU * 9 + formationAge * (0.22 + seed * 0.24);
+          const offset = index * 3;
+
+          positions[offset] = THREE.MathUtils.lerp(ataturkInitial[offset], ataturkTargets[offset], eased)
+            + Math.cos(angle) * swirl;
+          positions[offset + 1] = THREE.MathUtils.lerp(ataturkInitial[offset + 1], ataturkTargets[offset + 1], eased)
+            + Math.sin(angle * 1.17) * swirl * 0.68;
+          positions[offset + 2] = THREE.MathUtils.lerp(ataturkInitial[offset + 2], ataturkTargets[offset + 2], eased)
+            + Math.sin(angle * 0.73) * swirl * 0.4;
+
+          if (formationProgress === 1) {
+            const shimmer = Math.sin(now * 0.0014 + seed * 80) * 0.025;
+            positions[offset] += shimmer;
+            positions[offset + 1] -= shimmer * 0.7;
+          }
+        }
+        positionAttribute.needsUpdate = true;
+        const material = ataturkPoints.material as THREE.PointsMaterial;
+        material.opacity = Math.min(0.9, 0.08 + formationProgress * 0.82);
+        ataturkGroup.quaternion.copy(camera.quaternion);
+      }
 
       if (cameraGoal.active) {
         camera.position.lerp(cameraGoal.position, 0.045);
@@ -861,6 +1016,8 @@ export default function Home() {
     animationFrame = requestAnimationFrame(animate);
 
     return () => {
+      disposed = true;
+      sourcePhoto.onload = null;
       cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", resize);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
@@ -894,17 +1051,12 @@ export default function Home() {
         aria-live="polite"
       >
         <div className="commemoration-aura" aria-hidden="true" />
-        <img
-          className="ataturk-portrait"
-          src="/ataturk-kocatepe.jpg"
-          alt="Kocatepe’de Büyük Taarruz’u yöneten Mustafa Kemal Atatürk"
-        />
         <div className="commemoration-copy">
           <span className="commemoration-kicker">162 yıl sonra · yıldızların arasında</span>
           <p className="commemoration-date"><strong>19 MAYIS</strong><span>2081</span></p>
           <h2>Bağımsızlık meşalesi<br />gökyüzünü aydınlatıyor.</h2>
           <p className="commemoration-subtitle">Atatürk’ü Anma, Gençlik ve Spor Bayramı</p>
-          <small>Fotoğraf: Etem Tem · Genelkurmay Arşivi · Kamu malı</small>
+          <small>Yıldız biçimi: Etem Tem’in Kocatepe karesinden · Kamu malı</small>
         </div>
       </section>
 
