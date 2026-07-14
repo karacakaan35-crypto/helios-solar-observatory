@@ -30,13 +30,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description: "Güneş Sistemimizin canlı ve sinematik bir modeli.",
       type: "website",
-      images: [{ url: new URL("/og-v2.png", baseUrl), width: 1680, height: 944, alt: "Helios etkileşimli Güneş Sistemi gözlemevi — 19 Mayıs 2081" }],
+      images: [{ url: new URL("/og-v2.jpg", baseUrl), width: 1200, height: 675, alt: "Helios etkileşimli Güneş Sistemi gözlemevi — 19 Mayıs 2081" }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: "Güneş Sistemimizin canlı ve sinematik bir modeli.",
-      images: [new URL("/og-v2.png", baseUrl)],
+      images: [new URL("/og-v2.jpg", baseUrl)],
     },
   };
 }

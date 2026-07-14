@@ -153,13 +153,13 @@ const PLANETS: PlanetData[] = [
     diameter: "139,820 km",
     distanceLabel: "5.20 AU",
     temperature: "−110 °C",
-    moons: "95",
+    moons: "101",
     year: "11,86 yıl",
     note: "On saatten kısa sürede kendi çevresinde dönen, sistemin en büyük gezegeni.",
   },
   {
     id: "saturn",
-    name: "Saturn",
+    name: "Satürn",
     color: "#c6ad72",
     accent: "#f4e2a9",
     radius: 1.08,
@@ -173,13 +173,13 @@ const PLANETS: PlanetData[] = [
     diameter: "116,460 km",
     distanceLabel: "9.58 AU",
     temperature: "−140 °C",
-    moons: "146",
+    moons: "274",
     year: "29,45 yıl",
     note: "Milyarlarca buz ve kaya parçasından oluşan halkalarla çevrili soluk bir gaz devi.",
   },
   {
     id: "uranus",
-    name: "Uranus",
+    name: "Uranüs",
     color: "#70b9c2",
     accent: "#b9eef0",
     radius: 0.74,
@@ -446,6 +446,7 @@ export default function Home() {
   const [showGrid, setShowGrid] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [commemorationVisible, setCommemorationVisible] = useState(false);
+  const [renderError, setRenderError] = useState<string | null>(null);
 
   const speed = useMemo(() => 2 ** speedExponent, [speedExponent]);
   const selectedInfo = BODY_INFO[selected];
@@ -457,6 +458,22 @@ export default function Home() {
   useEffect(() => {
     playingRef.current = playing;
   }, [playing]);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const applyPreference = () => {
+      if (reducedMotion.matches) {
+        playingRef.current = false;
+        setPlaying(false);
+      }
+    };
+    const frame = requestAnimationFrame(applyPreference);
+    reducedMotion.addEventListener("change", applyPreference);
+    return () => {
+      cancelAnimationFrame(frame);
+      reducedMotion.removeEventListener("change", applyPreference);
+    };
+  }, []);
 
   const applyView = useCallback((view: ViewMode) => {
     setViewMode(view);
@@ -506,8 +523,21 @@ export default function Home() {
     const camera = new THREE.PerspectiveCamera(44, 1, 0.08, 420);
     camera.position.set(0, 24, 45);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: mount.clientWidth >= 700,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      const fallbackTimer = window.setTimeout(() => {
+        setRenderError("Bu cihazda üç boyutlu görünüm başlatılamadı. Bilgi panelleri ve gök cismi verileri kullanılabilir.");
+        setIsReady(true);
+      }, 0);
+      return () => window.clearTimeout(fallbackTimer);
+    }
+    const preferredPixelRatio = () => Math.min(window.devicePixelRatio, mount.clientWidth < 820 ? 1.5 : 2);
+    renderer.setPixelRatio(preferredPixelRatio());
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -516,6 +546,13 @@ export default function Home() {
     renderer.domElement.setAttribute("aria-label", "Güneş Sistemi’nin etkileşimli üç boyutlu modeli");
     renderer.domElement.setAttribute("role", "img");
     mount.appendChild(renderer.domElement);
+
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      setRenderError("Üç boyutlu görünüm cihaz tarafından durduruldu. Sayfayı yenileyerek tekrar deneyebilirsiniz.");
+      setIsReady(true);
+    };
+    renderer.domElement.addEventListener("webglcontextlost", onContextLost);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -897,6 +934,7 @@ export default function Home() {
     let lastUiUpdate = 0;
     let frame = 0;
     let animationFrame = 0;
+    let pageVisible = !document.hidden;
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     let downPoint: { x: number; y: number } | null = null;
@@ -921,13 +959,19 @@ export default function Home() {
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
     renderer.domElement.addEventListener("pointerup", onPointerUp);
 
+    const onVisibilityChange = () => {
+      pageVisible = !document.hidden;
+      lastFrame = performance.now();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const resize = () => {
       const width = mount.clientWidth;
       const height = mount.clientHeight;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(preferredPixelRatio());
       if (width < 820) {
         ataturkGroup.position.set(7.2, 5.2, -2);
         ataturkGroup.scale.setScalar(0.72);
@@ -942,6 +986,10 @@ export default function Home() {
     const animate = (now: number) => {
       const deltaSeconds = Math.min((now - lastFrame) / 1000, 0.08);
       lastFrame = now;
+      if (!pageVisible) {
+        animationFrame = requestAnimationFrame(animate);
+        return;
+      }
       if (playingRef.current) simulatedDays += deltaSeconds * speedRef.current;
       if (!commemorationTriggered && simulatedDays >= COMMEMORATION_DAY) {
         triggerCommemoration();
@@ -1022,6 +1070,8 @@ export default function Home() {
       window.removeEventListener("resize", resize);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       controls.dispose();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Points) {
@@ -1042,6 +1092,15 @@ export default function Home() {
   return (
     <main className="observatory-shell">
       <div ref={mountRef} className="universe-stage" />
+      {renderError ? (
+        <section className="render-fallback glass-panel" role="status" aria-live="polite">
+          <Telescope size={24} aria-hidden="true" />
+          <div>
+            <h2>3B görünüm kullanılamıyor</h2>
+            <p>{renderError}</p>
+          </div>
+        </section>
+      ) : null}
       <div className="nebula-wash" aria-hidden="true" />
       <div className="film-grain" aria-hidden="true" />
 
@@ -1080,6 +1139,7 @@ export default function Home() {
               key={id}
               type="button"
               className={viewMode === id ? "active" : ""}
+              aria-pressed={viewMode === id}
               onClick={() => applyView(id)}
             >
               {label}
@@ -1124,6 +1184,7 @@ export default function Home() {
               key={body}
               type="button"
               className={body === selected ? "selected" : ""}
+              aria-pressed={body === selected}
               aria-label={`${BODY_INFO[body].name} üzerine odaklan`}
               title={BODY_INFO[body].name}
               onClick={() => focusBody(body)}
@@ -1142,6 +1203,7 @@ export default function Home() {
         <button
           type="button"
           className={`layer-row ${showOrbits ? "enabled" : ""}`}
+          aria-pressed={showOrbits}
           onClick={() => {
             const next = !showOrbits;
             setShowOrbits(next);
@@ -1154,6 +1216,7 @@ export default function Home() {
         <button
           type="button"
           className={`layer-row ${showLabels ? "enabled" : ""}`}
+          aria-pressed={showLabels}
           onClick={() => {
             const next = !showLabels;
             setShowLabels(next);
@@ -1166,6 +1229,7 @@ export default function Home() {
         <button
           type="button"
           className={`layer-row ${showGrid ? "enabled" : ""}`}
+          aria-pressed={showGrid}
           onClick={() => {
             const next = !showGrid;
             setShowGrid(next);
